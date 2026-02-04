@@ -1,9 +1,12 @@
-const express = require("express");
-const userRoutes = require("./routes/user.routes");
-const authRoutes  = require("./routes/auth.routes");
-const authMiddleware = require("./middleware/auth.middleware");
+import express from "express";
+
+import projectRoutes from "./routes/project.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import authMiddleware from "./middleware/auth.middleware.js";
 
 const app = express();
+
 app.use(express.json());
 
 app.get("/api/protected", authMiddleware, (req, res) => {
@@ -18,6 +21,8 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api", userRoutes);
-app.use("/api",authRoutes);
+app.use("/api", authRoutes);
 
-module.exports = app;
+app.use("/projects", projectRoutes);
+
+export default app;

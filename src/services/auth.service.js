@@ -1,14 +1,48 @@
-const prisma = require("../config/prisma");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import prisma from "../prisma/client.js";
 
-async function loginUser(data) {
-  if (!data) {
-    throw new Error("Request body is missing");
+/*
+  SIGNUP LOGIC
+  ------------
+  Responsibility:
+  - Create a new user
+  - Hash password
+  - Prevent duplicate emails
+*/
+export async function signup({ email, password }) {
+  if (!email || !password) {
+    throw new Error("Email and password are required");
   }
 
-  const { email, password } = data;
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
 
+  if (existingUser) {
+    throw new Error("User already exists");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+    },
+  });
+
+  return user;
+}
+
+/*
+  LOGIN LOGIC
+  -----------
+  Responsibility:
+  - Verify credentials
+  - Generate JWT
+*/
+export async function loginUser({ email, password }) {
   if (!email || !password) {
     throw new Error("Email and password are required");
   }
@@ -28,14 +62,10 @@ async function loginUser(data) {
   }
 
   const token = jwt.sign(
-    { userId: user.id },
+    { id: user.id },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
   return token;
 }
-
-module.exports = {
-  loginUser,
-};

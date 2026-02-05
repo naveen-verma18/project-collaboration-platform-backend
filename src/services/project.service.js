@@ -41,3 +41,22 @@ export async function getMyProjects(userId) {
     },
   });
 }
+export async function getProjectById({ projectId, userId }) {
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      OR: [
+        { ownerId: userId },
+        {
+          members: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return project;
+}

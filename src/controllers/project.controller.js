@@ -1,5 +1,7 @@
 import { createProject } from "../services/project.service.js";
 import { getMyProjects } from "../services/project.service.js";
+import { getProjectById } from "../services/project.service.js";
+
 export async function createProjectController(req, res, next) {
   try {
     const userId = req.user.id;
@@ -34,3 +36,31 @@ export async function getMyProjectsController(req, res, next) {
     next(error);
   }
 }
+
+
+export async function getProjectByIdController(req, res, next) {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user.id;
+
+    const project = await getProjectById({
+      projectId,
+      userId,
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: project,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+

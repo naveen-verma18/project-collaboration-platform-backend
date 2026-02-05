@@ -1,19 +1,35 @@
-const authService = require("../services/auth.service");
+import { signup, loginUser } from "../services/auth.service.js";
 
-async function loginController(req, res) {
+export async function signupController(req, res, next) {
   try {
-    const token = await authService.loginUser(req.body);
+    const { email, password } = req.body;
 
-    res.status(200).json({
-      token,
+    const user = await signup({ email, password });
+
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      data: {
+        id: user.id,
+        email: user.email,
+      },
     });
   } catch (error) {
-    res.status(401).json({
-      error: error.message,
-    });
+    next(error);
   }
 }
 
-module.exports = {
-  loginController,
-};
+export async function loginController(req, res, next) {
+  try {
+    const { email, password } = req.body;
+
+    const token = await loginUser({ email, password });
+
+    res.status(200).json({
+      success: true,
+      token,
+    });
+  } catch (error) {
+    next(error);
+  }
+}

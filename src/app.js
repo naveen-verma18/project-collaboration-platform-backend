@@ -4,6 +4,8 @@ import projectRoutes from "./routes/project.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import authMiddleware from "./middleware/auth.middleware.js";
+import projectMemberRoutes from "./routes/projectMember.routes.js";
+
 
 const app = express();
 
@@ -17,12 +19,15 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 });
 
 app.get("/health", (req, res) => {
-  res.send("OK");
+  res.send("................OK Server is Running On localhost 4000...................");
 });
 
 app.use("/api", userRoutes);
 app.use("/api", authRoutes);
 
 app.use("/projects", projectRoutes);
+
+app.use(projectMemberRoutes);
+
 
 export default app;

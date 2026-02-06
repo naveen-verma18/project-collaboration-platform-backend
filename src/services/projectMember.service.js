@@ -65,3 +65,59 @@ export async function addMemberByEmail({
 
   return member;
 }
+
+
+
+
+/**
+ * Remove a member from a project
+ * Only the project OWNER is allowed
+ */
+export async function removeMember({
+  projectId,
+  ownerId,
+  memberId,
+}) {
+  // 1. Verify project exists AND requester is owner
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      ownerId: ownerId,
+    },
+  });
+
+  if (!project) {
+    throw new Error("PROJECT_NOT_FOUND");
+  }
+
+  // 2. Prevent owner removing themselves
+  if (memberId === ownerId) {
+    throw new Error("CANNOT_REMOVE_OWNER");
+  }
+
+  // 3. Verify membership exists
+  const membership = await prisma.projectMember.findUnique({
+    where: {
+      userId_projectId: {
+        userId: memberId,
+        projectId: projectId,
+      },
+    },
+  });
+
+  if (!membership) {
+    throw new Error("MEMBER_NOT_FOUND");
+  }
+
+  // 4. Remove member
+  await prisma.projectMember.delete({
+    where: {
+      userId_projectId: {
+        userId: memberId,
+        projectId: projectId,
+      },
+    },
+  });
+
+  return;
+}

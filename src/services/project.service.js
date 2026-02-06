@@ -60,7 +60,7 @@ export async function getProjectById({ projectId, userId }) {
 
   return project;
 }
-import prisma from "../prisma/client.js";
+
 
 
 

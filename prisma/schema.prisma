@@ -7,10 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/**
+ * =========================
+ * ENUMS
+ * =========================
+ */
+
 enum ProjectStatus {
   PLANNING
   ACTIVE
+  PAUSED
   COMPLETED
+  ARCHIVED
 }
 
 enum TaskStatus {
@@ -31,22 +39,35 @@ enum DocumentType {
   DECISION_LOG
 }
 
+/**
+ * =========================
+ * MODELS
+ * =========================
+ */
+
 model User {
   id       String  @id @default(uuid())
   email    String  @unique
   password String
   name     String?
 
-  createdGoals ProjectGoal[]
-
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @updatedAt
 
-  ownedProjects Project[]       @relation("OwnedProjects")
-  memberships   ProjectMember[]
-  tasksAssigned Task[]
-  comments      Comment[]
+  /**
+   * Relations
+   */
+  ownedProjects          Project[]              @relation("OwnedProjects")
+  memberships            ProjectMember[]
+  tasksAssigned          Task[]
+  comments               Comment[]
+  createdGoals           ProjectGoal[]
+  projectStatusHistories ProjectStatusHistory[]
 }
+
+/**
+ * =========================
+ */
 
 model Project {
   id          String        @id @default(uuid())
@@ -54,17 +75,25 @@ model Project {
   description String?
   status      ProjectStatus @default(PLANNING)
   ownerId     String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
 
-  goals ProjectGoal[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  owner     User            @relation("OwnedProjects", fields: [ownerId], references: [id])
-  members   ProjectMember[]
-  tasks     Task[]
-  documents Document[]
-  decisions Decision[]
+  /**
+   * Relations
+   */
+  owner         User                   @relation("OwnedProjects", fields: [ownerId], references: [id])
+  members       ProjectMember[]
+  tasks         Task[]
+  documents     Document[]
+  decisions     Decision[]
+  goals         ProjectGoal[]
+  statusHistory ProjectStatusHistory[]
 }
+
+/**
+ * =========================
+ */
 
 model ProjectMember {
   id        String      @id @default(uuid())
@@ -78,38 +107,54 @@ model ProjectMember {
   @@unique([userId, projectId])
 }
 
+/**
+ * =========================
+ */
+
 model Task {
   id          String     @id @default(uuid())
   title       String
   description String?
   status      TaskStatus @default(TODO)
-  projectId   String
-  assignedTo  String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+
+  projectId  String
+  assignedTo String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   project  Project   @relation(fields: [projectId], references: [id])
   assignee User?     @relation(fields: [assignedTo], references: [id])
   comments Comment[]
 }
 
+/**
+ * =========================
+ */
+
 model Document {
-  id        String       @id @default(uuid())
-  title     String
-  content   String
-  type      DocumentType
+  id      String       @id @default(uuid())
+  title   String
+  content String
+  type    DocumentType
+
   projectId String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   project  Project   @relation(fields: [projectId], references: [id])
   comments Comment[]
 }
 
+/**
+ * =========================
+ */
+
 model Decision {
-  id        String   @id @default(uuid())
-  title     String
-  reason    String
+  id     String @id @default(uuid())
+  title  String
+  reason String
+
   projectId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -117,19 +162,29 @@ model Decision {
   project Project @relation(fields: [projectId], references: [id])
 }
 
+/**
+ * =========================
+ */
+
 model Comment {
-  id         String   @id @default(uuid())
-  content    String
+  id      String @id @default(uuid())
+  content String
+
   userId     String
   taskId     String?
   documentId String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user     User      @relation(fields: [userId], references: [id])
   task     Task?     @relation(fields: [taskId], references: [id])
   document Document? @relation(fields: [documentId], references: [id])
 }
+
+/**
+ * =========================
+ */
 
 model ProjectGoal {
   id          String    @id @default(uuid())
@@ -138,14 +193,32 @@ model ProjectGoal {
   isCompleted Boolean   @default(false)
   completedAt DateTime?
 
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
+  projectId   String
   createdById String
-  createdBy   User   @relation(fields: [createdById], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User    @relation(fields: [createdById], references: [id])
+
+  @@index([projectId])
+}
+
+/**
+ * =========================
+ */
+
+model ProjectStatusHistory {
+  id        String        @id @default(uuid())
+  projectId String
+  status    ProjectStatus
+  changedBy String
+
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [changedBy], references: [id])
 
   @@index([projectId])
 }

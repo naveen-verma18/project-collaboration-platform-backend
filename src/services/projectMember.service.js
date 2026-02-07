@@ -121,3 +121,68 @@ export async function removeMember({
 
   return;
 }
+
+
+
+
+/**
+ * Change role of a project member
+ * Only OWNER is allowed
+ */
+export async function changeMemberRole({
+  projectId,
+  ownerId,
+  memberId,
+  role,
+}) {
+  // 1. Validate role
+  if (!["ADMIN", "MEMBER"].includes(role)) {
+    throw new Error("INVALID_ROLE");
+  }
+
+  // 2. Verify project exists AND requester is owner
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      ownerId: ownerId,
+    },
+  });
+
+  if (!project) {
+    throw new Error("PROJECT_NOT_FOUND");
+  }
+
+  // 3. Prevent owner changing their own role
+  if (ownerId === memberId) {
+    throw new Error("CANNOT_CHANGE_OWNER_ROLE");
+  }
+
+  // 4. Verify membership exists
+  const membership = await prisma.projectMember.findUnique({
+    where: {
+      userId_projectId: {
+        userId: memberId,
+        projectId: projectId,
+      },
+    },
+  });
+
+  if (!membership) {
+    throw new Error("MEMBER_NOT_FOUND");
+  }
+
+  // 5. Update role
+  const updatedMember = await prisma.projectMember.update({
+    where: {
+      userId_projectId: {
+        userId: memberId,
+        projectId: projectId,
+      },
+    },
+    data: {
+      role: role,
+    },
+  });
+
+  return updatedMember;
+}

@@ -1,5 +1,6 @@
 import { addMemberByEmail } from "../services/projectMember.service.js";
 import { removeMember } from "../services/projectMember.service.js";
+import { changeMemberRole } from "../services/projectMember.service.js";
 
 
 export async function addProjectMember(req, res) {
@@ -76,6 +77,54 @@ export async function removeProjectMember(req, res) {
 
       case "MEMBER_NOT_FOUND":
         return res.status(404).json({ error: "Member not found in project" });
+
+      default:
+        console.error(error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+  }
+}
+
+
+
+
+
+export async function changeProjectMemberRole(req, res) {
+  try {
+    const { projectId, memberId } = req.params;
+    const { role } = req.body;
+
+    const ownerId = req.user.id;
+
+    const updatedMember = await changeMemberRole({
+      projectId,
+      ownerId,
+      memberId,
+      role,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Member role updated successfully",
+      data: {
+        userId: updatedMember.userId,
+        projectId: updatedMember.projectId,
+        role: updatedMember.role,
+      },
+    });
+  } catch (error) {
+    switch (error.message) {
+      case "INVALID_ROLE":
+        return res.status(400).json({ error: "Invalid role" });
+
+      case "PROJECT_NOT_FOUND":
+        return res.status(404).json({ error: "Project not found" });
+
+      case "CANNOT_CHANGE_OWNER_ROLE":
+        return res.status(400).json({ error: "Owner role cannot be changed" });
+
+      case "MEMBER_NOT_FOUND":
+        return res.status(404).json({ error: "Member not found" });
 
       default:
         console.error(error);

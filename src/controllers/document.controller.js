@@ -1,4 +1,5 @@
 import * as documentService from "../services/document.service.js";
+import { updateDocument } from "../services/document.service.js";
 
 export const createDocument = async (req, res) => {
   const { projectId } = req.params;
@@ -38,4 +39,21 @@ export const updateDocument = async (req, res) => {
   });
 
   res.json(doc);
+};
+
+
+
+export const updateDocumentController = async (req, res) => {
+  const { documentId } = req.params;
+  const { title, content } = req.body;
+  const userId = req.user.id;
+
+  const document = await updateDocument(
+    documentId,
+    title,
+    content,
+    userId
+  );
+
+  res.json(document);
 };

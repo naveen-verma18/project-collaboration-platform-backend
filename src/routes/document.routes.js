@@ -5,8 +5,19 @@ import {
   getDocuments,
   updateDocument
 } from "../controllers/document.controller.js";
+import { updateDocumentController } from "../controllers/document.controller.js";
+
 
 const router = express.Router();
+
+
+
+
+router.put(
+  "/documents/:documentId",
+  authenticate,
+  updateDocumentController
+);
 
 router.post(
   "/projects/:projectId/documents",

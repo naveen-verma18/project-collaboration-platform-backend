@@ -1,22 +1,21 @@
 import express from "express";
 import { authenticate } from "../middlewares/auth.middleware.js";
-import {
-  createDecision,
-  getDecisions
-} from "../controllers/decision.controller.js";
+import { createDecisionController,getDecisionsController} from "../controllers/decision.controller.js";
 
 const router = express.Router();
 
+// Create decision
 router.post(
   "/projects/:projectId/decisions",
   authenticate,
-  createDecision
+  createDecisionController
 );
 
+// Get all decisions
 router.get(
   "/projects/:projectId/decisions",
   authenticate,
-  getDecisions
+  getDecisionsController
 );
 
 export default router;

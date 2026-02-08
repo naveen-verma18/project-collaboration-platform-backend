@@ -41,32 +41,35 @@ export const getProjectDocuments = async ({ projectId, userId }) => {
 
   
 
-  export const updateDocument = async ({
-    documentId,
-    userId,
-    title,
-    content
-  }) => {
-    const document = await prisma.document.findUnique({
-      where: { id: documentId }
-    });
-  
-    if (!document) {
-      throw new Error("Document not found");
-    }
-  
-    const role = await getUserProjectRole(document.projectId, userId);
-  
-    if (!role || role === "MEMBER") {
-      throw new Error("Not authorized to update document");
-    }
-  
-    return prisma.document.update({
-      where: { id: documentId },
-      data: {
-        title,
-        content
-      }
-    });
-  };
-  
+  import prisma from "../prisma/client.js";
+import { emitToProject } from "../socket/socket.js";
+
+/**
+ * Update a document
+ * - Saves to DB
+ * - Emits real-time update event
+ */
+export const updateDocument = async (
+  documentId,
+  title,
+  content,
+  userId
+) => {
+  // 1️⃣ Update document in DB
+  const document = await prisma.document.update({
+    where: { id: documentId },
+    data: {
+      title,
+      content,
+    },
+  });
+
+  // 2️⃣ Emit WebSocket event AFTER DB success
+  emitToProject(document.projectId, "document:updated", {
+    documentId: document.id,
+    projectId: document.projectId,
+    updatedBy: userId,
+  });
+
+  return document;
+};

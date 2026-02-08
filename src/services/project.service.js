@@ -1,4 +1,6 @@
 import prisma from "../prisma/client.js";
+import { emitToProject } from "../socket/socket.js";
+
 
 export async function createProject({ userId, name, description }) {
   if (!name || name.trim() === "") {
@@ -134,3 +136,33 @@ export async function deleteProject({ projectId, ownerId }) {
 
   return;
 }
+
+
+
+/**
+ * Update project status
+ * - Updates DB
+ * - Emits real-time event
+ */
+export const updateProjectStatus = async (
+  projectId,
+  newStatus,
+  userId
+) => {
+  // 1️⃣ Update database
+  const project = await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      status: newStatus,
+    },
+  });
+
+  // 2️⃣ Emit real-time event AFTER DB success
+  emitToProject(projectId, "project:statusChanged", {
+    projectId,
+    status: newStatus,
+    changedBy: userId,
+  });
+
+  return project;
+};

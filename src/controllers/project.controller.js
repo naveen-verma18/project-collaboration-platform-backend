@@ -3,7 +3,7 @@ import { getMyProjects } from "../services/project.service.js";
 import { getProjectById } from "../services/project.service.js";
 import { updateProject } from "../services/project.service.js";
 import { deleteProject } from "../services/project.service.js";
-
+import { updateProjectStatus } from "../services/project.service.js";
 
 
 export async function createProjectController(req, res, next) {
@@ -129,3 +129,20 @@ export async function deleteProjectController(req, res) {
     }
   }
 }
+
+
+
+
+export const updateProjectStatusController = async (req, res) => {
+  const { projectId } = req.params;
+  const { status } = req.body;
+  const userId = req.user.id;
+
+  const project = await updateProjectStatus(
+    projectId,
+    status,
+    userId
+  );
+
+  res.json(project);
+};

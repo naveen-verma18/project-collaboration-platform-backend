@@ -1,21 +1,40 @@
 import { prisma } from "../prisma/client.js";
 import { getUserProjectRole } from "./projectMember.service.js";
+import { emitToProject } from "../socket/socket.js";
 
-export const createDecision = async ({ projectId, userId, title, reason }) => {
-  const role = await getUserProjectRole(projectId, userId);
-
-  if (!role || role === "MEMBER") {
-    throw new Error("Not authorized to add decisions");
-  }
-
-  return prisma.decision.create({
+/**
+ * Create a new decision
+ * - Saves to DB
+ * - Emits real-time event
+ */
+export const createDecision = async (
+  projectId,
+  title,
+  reason,
+  userId
+) => {
+  // 1️⃣ Save decision in DB
+  const decision = await prisma.decision.create({
     data: {
       title,
       reason,
-      projectId
-    }
+      projectId,
+      createdBy: userId, // if you store this
+    },
   });
+
+  // 2️⃣ Emit WebSocket event AFTER DB success
+  emitToProject(projectId, "decision:added", {
+    decisionId: decision.id,
+    projectId,
+    title: decision.title,
+    createdBy: userId,
+  });
+
+  // 3️⃣ Return created decision
+  return decision;
 };
+
 
 
 export const getProjectDecisions = async ({ projectId, userId }) => {

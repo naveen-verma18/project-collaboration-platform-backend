@@ -1,52 +1,43 @@
-import { prisma } from "../prisma/client.js";
-import { getUserProjectRole } from "./projectMember.service.js";
+import prisma from "../prisma/client.js";
 import { emitToProject } from "../socket/socket.js";
+import { createActivity } from "../activity/activity.service.js";
 
 /**
  * Create a new decision
- * - Saves to DB
- * - Emits real-time event
  */
-export const createDecision = async (
+export const createDecision = async ({
   projectId,
   title,
   reason,
-  userId
-) => {
-  // 1️⃣ Save decision in DB
+  userId,
+}) => {
+  // 1️⃣ Create decision in DB
   const decision = await prisma.decision.create({
     data: {
       title,
       reason,
       projectId,
-      createdBy: userId, // if you store this
     },
   });
 
-  // 2️⃣ Emit WebSocket event AFTER DB success
+  // 2️⃣ Emit real-time update
   emitToProject(projectId, "decision:added", {
     decisionId: decision.id,
-    projectId,
     title: decision.title,
     createdBy: userId,
   });
 
-  // 3️⃣ Return created decision
+  // 3️⃣ Persist activity
+  await createActivity({
+    projectId,
+    userId,
+    action: "DECISION_ADDED",
+    metadata: {
+      decisionId: decision.id,
+      title: decision.title,
+    },
+  });
+
+  // 4️⃣ Return decision
   return decision;
 };
-
-
-
-export const getProjectDecisions = async ({ projectId, userId }) => {
-    const role = await getUserProjectRole(projectId, userId);
-  
-    if (!role) {
-      throw new Error("Access denied");
-    }
-  
-    return prisma.decision.findMany({
-      where: { projectId },
-      orderBy: { createdAt: "asc" }
-    });
-  };
-  

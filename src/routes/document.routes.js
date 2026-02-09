@@ -11,8 +11,6 @@ import { updateDocumentController } from "../controllers/document.controller.js"
 const router = express.Router();
 
 
-
-
 router.put(
   "/documents/:documentId",
   authenticate,

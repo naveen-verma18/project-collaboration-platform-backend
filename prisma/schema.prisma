@@ -53,6 +53,7 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  activities ProjectActivity[]
 
   /**
    * Relations
@@ -78,6 +79,8 @@ model Project {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  activities ProjectActivity[]
+
 
   /**
    * Relations
@@ -221,4 +224,23 @@ model ProjectStatusHistory {
   user    User    @relation(fields: [changedBy], references: [id])
 
   @@index([projectId])
+}
+
+
+model ProjectActivity {
+  id        String   @id @default(uuid())
+
+  projectId String
+  userId    String
+
+  action    String
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([projectId])
+  @@index([userId])
 }

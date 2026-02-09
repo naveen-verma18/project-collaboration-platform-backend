@@ -1,10 +1,13 @@
 import prisma from "../prisma/client.js";
 import { emitToProject } from "../socket/socket.js";
+import { createActivity } from "../activity/activity.service.js";
 
-
-export async function createProject({ userId, name, description }) {
+/**
+ * Create a new project
+ */
+export const createProject = async ({ userId, name, description }) => {
   if (!name || name.trim() === "") {
-    throw new Error("Project name is required");
+    throw new Error("PROJECT_NAME_REQUIRED");
   }
 
   const project = await prisma.project.create({
@@ -21,10 +24,23 @@ export async function createProject({ userId, name, description }) {
     },
   });
 
-  return project;
-}
+  // 🔔 Activity: project created
+  await createActivity({
+    projectId: project.id,
+    userId,
+    action: "PROJECT_CREATED",
+    metadata: {
+      name: project.name,
+    },
+  });
 
-export async function getMyProjects(userId) {
+  return project;
+};
+
+/**
+ * Get projects for a user
+ */
+export const getMyProjects = async (userId) => {
   return prisma.project.findMany({
     where: {
       OR: [
@@ -32,7 +48,7 @@ export async function getMyProjects(userId) {
         {
           members: {
             some: {
-              userId: userId,
+              userId,
             },
           },
         },
@@ -42,9 +58,13 @@ export async function getMyProjects(userId) {
       createdAt: "desc",
     },
   });
-}
-export async function getProjectById({ projectId, userId }) {
-  const project = await prisma.project.findFirst({
+};
+
+/**
+ * Get project by ID (with access check)
+ */
+export const getProjectById = async ({ projectId, userId }) => {
+  return prisma.project.findFirst({
     where: {
       id: projectId,
       OR: [
@@ -52,36 +72,29 @@ export async function getProjectById({ projectId, userId }) {
         {
           members: {
             some: {
-              userId: userId,
+              userId,
             },
           },
         },
       ],
     },
   });
-
-  return project;
-}
-
-
-
+};
 
 /**
- * Update a project
- * Only the project OWNER is allowed
+ * Update project (OWNER only)
  */
-export async function updateProject({
+export const updateProject = async ({
   projectId,
   ownerId,
   name,
   description,
   status,
-}) {
-  // 1. Verify project exists AND requester is owner
+}) => {
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,
-      ownerId: ownerId,
+      ownerId,
     },
   });
 
@@ -89,9 +102,7 @@ export async function updateProject({
     throw new Error("PROJECT_NOT_FOUND");
   }
 
-  // 2. Validate update data
   const dataToUpdate = {};
-
   if (name !== undefined) dataToUpdate.name = name;
   if (description !== undefined) dataToUpdate.description = description;
   if (status !== undefined) dataToUpdate.status = status;
@@ -100,27 +111,20 @@ export async function updateProject({
     throw new Error("NO_FIELDS_TO_UPDATE");
   }
 
-  // 3. Perform update
-  const updatedProject = await prisma.project.update({
+  return prisma.project.update({
     where: { id: projectId },
     data: dataToUpdate,
   });
-
-  return updatedProject;
-}
-
-
+};
 
 /**
- * Delete a project
- * Only the project OWNER is allowed
+ * Delete project (OWNER only)
  */
-export async function deleteProject({ projectId, ownerId }) {
-  // 1. Verify project exists AND requester is owner
+export const deleteProject = async ({ projectId, ownerId }) => {
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,
-      ownerId: ownerId,
+      ownerId,
     },
   });
 
@@ -128,40 +132,43 @@ export async function deleteProject({ projectId, ownerId }) {
     throw new Error("PROJECT_NOT_FOUND");
   }
 
-  // 2. Delete project
-  // Related members will be handled by DB constraints or cascade later
   await prisma.project.delete({
     where: { id: projectId },
   });
-
-  return;
-}
-
-
+};
 
 /**
  * Update project status
  * - Updates DB
- * - Emits real-time event
+ * - Emits WebSocket
+ * - Creates activity
  */
 export const updateProjectStatus = async (
   projectId,
   newStatus,
   userId
 ) => {
-  // 1️⃣ Update database
+  // 1️⃣ Update DB
   const project = await prisma.project.update({
     where: { id: projectId },
-    data: {
-      status: newStatus,
-    },
+    data: { status: newStatus },
   });
 
-  // 2️⃣ Emit real-time event AFTER DB success
+  // 2️⃣ Emit real-time event
   emitToProject(projectId, "project:statusChanged", {
     projectId,
     status: newStatus,
     changedBy: userId,
+  });
+
+  // 3️⃣ Persist activity
+  await createActivity({
+    projectId,
+    userId,
+    action: "PROJECT_STATUS_CHANGED",
+    metadata: {
+      status: newStatus,
+    },
   });
 
   return project;

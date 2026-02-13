@@ -29,7 +29,7 @@ export const createDocument = async ({
     },
   });
 
-  // 🔔 Activity: document created
+  //  Activity: document created
   await createActivity({
     projectId,
     userId,

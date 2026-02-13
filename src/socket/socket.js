@@ -1,7 +1,9 @@
 import PresenceService from "./services/presence.services.js";
+import TypingService from "./services/typing.service.js";
 let ioInstance = null;
 
 const presenceService = new PresenceService();
+const typingService = new TypingService();
 
 /**
  * Called once from server.js
@@ -37,6 +39,14 @@ export const initSocket = (io) => {
           userId: socket.user.id
         });
       }
+
+      socket.on("document:join", (projectId, documentId) => {
+
+        const roomName = `project:${projectId}:doc:${documentId}`;
+      
+        socket.join(roomName);
+      
+      });
     });
 
     // ------------------------
@@ -78,6 +88,61 @@ export const initSocket = (io) => {
 
       console.log("User disconnected:", socket.id);
     });
+
+    socket.on("typing:start", (projectId, documentId) => {
+
+      const { changed } = typingService.startTyping(
+        projectId,
+        documentId,
+        socket.user.id
+      );
+    
+      if (changed) {
+        const roomName = `project:${projectId}:doc:${documentId}`;
+    
+        const typingUsers = typingService.getTypingUsers(
+          projectId,
+          documentId
+        );
+    
+        ioInstance.to(roomName).emit("typing:update", typingUsers);
+      }
+    
+    });
+    socket.on("typing:stop", (projectId, documentId) => {
+
+      const { changed } = typingService.stopTyping(
+        projectId,
+        documentId,
+        socket.user.id
+      );
+    
+      if (changed) {
+        const roomName = `project:${projectId}:doc:${documentId}`;
+    
+        const typingUsers = typingService.getTypingUsers(
+          projectId,
+          documentId
+        );
+    
+        ioInstance.to(roomName).emit("typing:update", typingUsers);
+      }
+    
+    });
+
+    const typingUpdates =
+  typingService.removeUserFromAllDocuments(socket.user.id);
+
+for (const { projectId, documentId } of typingUpdates) {
+  const roomName = `project:${projectId}:doc:${documentId}`;
+
+  const typingUsers = typingService.getTypingUsers(
+    projectId,
+    documentId
+  );
+
+  ioInstance.to(roomName).emit("typing:update", typingUsers);
+}
 
   });
 };

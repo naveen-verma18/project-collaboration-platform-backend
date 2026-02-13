@@ -26,10 +26,10 @@ export const createDocument = async ({
       content,
       type,
       projectId,
+      version: 1, // initial version
     },
   });
 
-  //  Activity: document created
   await createActivity({
     projectId,
     userId,
@@ -62,11 +62,8 @@ export const getProjectDocuments = async ({ projectId, userId }) => {
 };
 
 /**
- * Update a document
+ * Update document using Optimistic Concurrency Control (OCC)
  * OWNER / ADMIN only
- * - Updates DB
- * - Emits WebSocket
- * - Creates activity
  */
 export const updateDocument = async ({
   documentId,
@@ -74,6 +71,7 @@ export const updateDocument = async ({
   title,
   content,
   userId,
+  version,
 }) => {
   const role = await getUserProjectRole(projectId, userId);
 
@@ -81,31 +79,68 @@ export const updateDocument = async ({
     throw new Error("NOT_AUTHORIZED");
   }
 
-  // 1️⃣ Update document (source of truth)
-  const document = await prisma.document.update({
-    where: { id: documentId },
+  // 🔐 Atomic update (id + version must match)
+  const result = await prisma.document.updateMany({
+    where: {
+      id: documentId,
+      version: version,
+    },
     data: {
       title,
       content,
+      version: {
+        increment: 1,
+      },
     },
   });
 
-  // 2️⃣ Emit real-time update
-  emitToProject(projectId, "document:updated", {
-    documentId: document.id,
-    updatedBy: userId,
+  // ❌ Conflict or missing document
+  if (result.count === 0) {
+    const latest = await prisma.document.findUnique({
+      where: { id: documentId },
+    });
+
+    if (!latest) {
+      throw new Error("DOCUMENT_NOT_FOUND");
+    }
+
+    return {
+      conflict: true,
+      latestContent: latest.content,
+      latestTitle: latest.title,
+      latestVersion: latest.version,
+    };
+  }
+
+  // ✅ Fetch updated document
+  const updatedDocument = await prisma.document.findUnique({
+    where: { id: documentId },
   });
 
-  // 3️⃣ Persist activity
+  // Emit standardized real-time update
+  emitToProject(projectId, "document:updated", {
+    success: true,
+    data: {
+      documentId: updatedDocument.id,
+      updatedBy: userId,
+      version: updatedDocument.version,
+    },
+    error: null,
+  });
+
+  // Log activity
   await createActivity({
     projectId,
     userId,
     action: "DOCUMENT_UPDATED",
     metadata: {
-      documentId: document.id,
-      title: document.title,
+      documentId: updatedDocument.id,
+      title: updatedDocument.title,
     },
   });
 
-  return document;
+  return {
+    conflict: false,
+    document: updatedDocument,
+  };
 };

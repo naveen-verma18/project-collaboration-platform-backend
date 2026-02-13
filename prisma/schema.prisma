@@ -141,6 +141,8 @@ model Document {
   content String
   type    DocumentType
 
+  version Int @default(1)
+
   projectId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

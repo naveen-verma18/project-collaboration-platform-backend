@@ -1,5 +1,8 @@
-const prisma = require("../config/prisma");
-const bcrypt = require("bcrypt");
+//  const prisma = require("../config/prisma");
+ import { de } from "zod/locales";
+import prisma from "../config/prisma.js";
+//const bcrypt = require("bcrypt");
+import bcrypt from "bcrypt";
 
 async function createUser(data) {
   if (!data) {
@@ -25,6 +28,7 @@ async function createUser(data) {
   return user;
 }
 
-module.exports = {
-  createUser,
-};
+export default createUser;
+// module.exports = {
+//   createUser,
+// };

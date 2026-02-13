@@ -15,6 +15,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*", // later restrict this for frontend
+    pingInterval: 10000,   // 10 seconds
+    pingTimeout: 5000      // 5 seconds
   },
 });
 initSocket(io);
@@ -148,6 +150,8 @@ io.on("connection", (socket) => {
     console.log(
       `❌ User ${socket.user.id} disconnected`
     );
+    socket.activeProjects?.clear();
+    socket.activeDocuments?.clear();
 
     // Cleanup presence
     for (const [projectId, users] of projectPresence.entries()) {

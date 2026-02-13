@@ -1,6 +1,5 @@
-const userService = require("../services/user.service");
-
-async function createUserController(req, res) {
+import * as userService from "../services/user.service.js";
+export async function createUserController(req, res) {
   try {
     const user = await userService.createUser(req.body);
 
@@ -13,8 +12,8 @@ async function createUserController(req, res) {
     });
   }
 }
-
-module.exports = {
-  createUserController,
-};
+export default createUserController
+// module.exports = {
+//   createUserController,
+// };
 console.log(".............Controller reloaded....................");

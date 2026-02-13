@@ -88,5 +88,5 @@ class PresenceService {
       return Array.from(this.projects.get(projectId).keys());
     }
   }
-  
-  module.exports = PresenceService;
+  export default PresenceService;
+//   module.exports = PresenceService;

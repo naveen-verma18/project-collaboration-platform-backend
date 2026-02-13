@@ -186,3 +186,38 @@ export async function changeMemberRole({
 
   return updatedMember;
 }
+/**
+ * Get role of a user in a project
+ * Returns: "OWNER" | "ADMIN" | "MEMBER" | null
+ */
+export async function getUserProjectRole(projectId, userId) {
+  // 1️⃣ Check if user is project owner
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project) {
+    return null;
+  }
+
+  if (project.ownerId === userId) {
+    return "OWNER";
+  }
+
+  // 2️⃣ Check projectMember table
+  const membership = await prisma.projectMember.findUnique({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId,
+      },
+    },
+  });
+
+  if (!membership) {
+    return null;
+  }
+
+  return membership.role; // ADMIN or MEMBER
+}
+

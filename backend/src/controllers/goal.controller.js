@@ -1,6 +1,6 @@
 import * as goalService from "../services/goal.service.js";
 
-export const createGoal = async (req, res) => {
+export const createGoal = async (req, res, next) => {
   const { projectId } = req.params;
   const { title, description } = req.body;
   const userId = req.user.id;
@@ -10,18 +10,18 @@ export const createGoal = async (req, res) => {
       projectId,
       title,
       description,
-      userId
+      userId,
     });
     res.status(201).json({
       success: true,
       data: goal,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-export const getGoals = async (req, res) => {
+export const getGoals = async (req, res, next) => {
   const { projectId } = req.params;
   try {
     const goals = await goalService.getGoals(projectId);
@@ -30,11 +30,11 @@ export const getGoals = async (req, res) => {
       data: goals,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-export const completeGoalController = async (req, res) => {
+export const completeGoalController = async (req, res, next) => {
   const { goalId } = req.params;
   const userId = req.user.id;
 
@@ -45,6 +45,6 @@ export const completeGoalController = async (req, res) => {
       data: goal,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };

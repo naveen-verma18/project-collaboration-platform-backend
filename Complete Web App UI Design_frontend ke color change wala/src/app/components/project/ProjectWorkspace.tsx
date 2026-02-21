@@ -60,8 +60,8 @@ export function ProjectWorkspace({ theme, toggleTheme }: ProjectWorkspaceProps) 
   const loadProject = async (id: string) => {
     try {
       setLoading(true);
-      const data = await projectApi.getOne(id);
-      setProject(data.data);
+      const response = await projectApi.getOne(id);
+      setProject(response.data);
     } catch (error) {
       console.error("Failed to load project", error);
     } finally {

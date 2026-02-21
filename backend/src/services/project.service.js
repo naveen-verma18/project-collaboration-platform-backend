@@ -188,8 +188,17 @@ export const deleteProject = async ({ projectId, ownerId }) => {
     throw new Error("PROJECT_NOT_FOUND");
   }
 
-  await prisma.project.delete({
-    where: { id: projectId },
+  await prisma.$transaction(async (tx) => {
+    // Explicitly remove related records to ensure cascade semantics
+    await tx.projectActivity.deleteMany({ where: { projectId } });
+    await tx.projectGoal.deleteMany({ where: { projectId } });
+    await tx.document.deleteMany({ where: { projectId } });
+    await tx.projectMember.deleteMany({ where: { projectId } });
+    await tx.projectInvitation.deleteMany({ where: { projectId } });
+
+    await tx.project.delete({
+      where: { id: projectId },
+    });
   });
 };
 

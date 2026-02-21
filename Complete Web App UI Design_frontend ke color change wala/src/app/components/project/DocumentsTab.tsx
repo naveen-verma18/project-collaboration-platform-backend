@@ -52,8 +52,9 @@ export function DocumentsTab() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const data = await documentApi.getAll(projectId!);
-      const mappedDocs = data.map((d: any) => ({
+      const response = await documentApi.getAll(projectId!);
+      const backendDocs = response.data;
+      const mappedDocs = backendDocs.map((d: any) => ({
         ...d,
         updatedAt: new Date(d.updatedAt).toLocaleTimeString(), // Mock time format
       }));
@@ -71,13 +72,13 @@ export function DocumentsTab() {
 
   const handleCreateDocument = async () => {
     try {
-      const newDoc = await documentApi.create(projectId!, {
+      const response = await documentApi.create(projectId!, {
         title: "New Document",
         content: "# New Document",
-        type: "REQUIREMENTS" // Default type
+        type: "REQUIREMENTS", // Default type
       });
       await fetchDocuments();
-      setSelectedDoc(newDoc);
+      setSelectedDoc(response.data);
     } catch (error) {
       console.error("Failed to create document", error);
     }
@@ -97,7 +98,7 @@ export function DocumentsTab() {
       try {
         await documentApi.update(selectedDoc.id, {
           title: selectedDoc.title,
-          content: newContent
+          content: newContent,
         });
         setSaveStatus("saved");
         setIsTyping(false);

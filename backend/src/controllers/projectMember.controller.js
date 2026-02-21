@@ -31,23 +31,59 @@ export async function addProjectMember(req, res) {
 
     switch (error.message) {
       case "EMAIL_REQUIRED":
-        return res.status(400).json({ error: "Email is required" });
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: "EMAIL_REQUIRED",
+            message: "Email is required",
+          },
+        });
 
       case "PROJECT_NOT_FOUND":
-        return res.status(404).json({ error: "Project not found" });
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: "PROJECT_NOT_FOUND",
+            message: "Project not found",
+          },
+        });
 
       case "USER_NOT_FOUND":
-        return res.status(400).json({ error: "User with this email does not exist" });
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: "USER_NOT_FOUND",
+            message: "User with this email does not exist",
+          },
+        });
 
       case "CANNOT_ADD_SELF":
-        return res.status(400).json({ error: "Owner cannot be added as a member" });
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: "CANNOT_ADD_SELF",
+            message: "Owner cannot be added as a member",
+          },
+        });
 
       case "ALREADY_MEMBER":
-        return res.status(409).json({ error: "User is already a project member" });
+        return res.status(409).json({
+          success: false,
+          error: {
+            code: "ALREADY_MEMBER",
+            message: "User is already a project member",
+          },
+        });
 
       default:
         console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({
+          success: false,
+          error: {
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Internal server error",
+          },
+        });
     }
   }
 }
@@ -67,21 +103,49 @@ export async function removeProjectMember(req, res) {
       memberId,
     });
 
-    return res.status(204).send();
+    return res.status(200).json({
+      success: true,
+      data: null,
+      message: "Member removed successfully",
+    });
   } catch (error) {
     switch (error.message) {
       case "PROJECT_NOT_FOUND":
-        return res.status(404).json({ error: "Project not found" });
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: "PROJECT_NOT_FOUND",
+            message: "Project not found",
+          },
+        });
 
       case "CANNOT_REMOVE_OWNER":
-        return res.status(400).json({ error: "Owner cannot be removed" });
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: "CANNOT_REMOVE_OWNER",
+            message: "Owner cannot be removed",
+          },
+        });
 
       case "MEMBER_NOT_FOUND":
-        return res.status(404).json({ error: "Member not found in project" });
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: "MEMBER_NOT_FOUND",
+            message: "Member not found in project",
+          },
+        });
 
       default:
         console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({
+          success: false,
+          error: {
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Internal server error",
+          },
+        });
     }
   }
 }
@@ -116,20 +180,50 @@ export async function changeProjectMemberRole(req, res) {
   } catch (error) {
     switch (error.message) {
       case "INVALID_ROLE":
-        return res.status(400).json({ error: "Invalid role" });
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: "INVALID_ROLE",
+            message: "Invalid role",
+          },
+        });
 
       case "PROJECT_NOT_FOUND":
-        return res.status(404).json({ error: "Project not found" });
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: "PROJECT_NOT_FOUND",
+            message: "Project not found",
+          },
+        });
 
       case "CANNOT_CHANGE_OWNER_ROLE":
-        return res.status(400).json({ error: "Owner role cannot be changed" });
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: "CANNOT_CHANGE_OWNER_ROLE",
+            message: "Owner role cannot be changed",
+          },
+        });
 
       case "MEMBER_NOT_FOUND":
-        return res.status(404).json({ error: "Member not found" });
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: "MEMBER_NOT_FOUND",
+            message: "Member not found",
+          },
+        });
 
       default:
         console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({
+          success: false,
+          error: {
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Internal server error",
+          },
+        });
     }
   }
 }

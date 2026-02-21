@@ -29,6 +29,7 @@ enum TaskStatus {
 
 enum ProjectRole {
   OWNER
+  ADMIN
   MEMBER
 }
 
@@ -37,6 +38,12 @@ enum DocumentType {
   REQUIREMENTS
   ARCHITECTURE
   DECISION_LOG
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 /**
@@ -64,6 +71,8 @@ model User {
   comments               Comment[]
   createdGoals           ProjectGoal[]
   projectStatusHistories ProjectStatusHistory[]
+  sentInvitations        ProjectInvitation[]    @relation("InvitedByUser")
+  receivedInvitations    ProjectInvitation[]    @relation("InvitedUser")
 }
 
 /**
@@ -245,4 +254,20 @@ model ProjectActivity {
 
   @@index([projectId])
   @@index([userId])
+}
+
+model ProjectInvitation {
+  id           String            @id @default(uuid())
+  projectId    String
+  invitedUserId String
+  invitedBy    String
+  status       InvitationStatus  @default(PENDING)
+  createdAt    DateTime          @default(now())
+
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invitedUser  User              @relation("InvitedUser", fields: [invitedUserId], references: [id])
+  invitedByUser User             @relation("InvitedByUser", fields: [invitedBy], references: [id])
+
+  @@index([projectId])
+  @@index([invitedUserId])
 }

@@ -12,6 +12,8 @@ import decisionRoutes from "./routes/decision.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import projectProgressRoutes from "./routes/projectProgress.routes.js";
 import activityRoutes from "./routes/activity.routes.js";
+import invitationRoutes from "./routes/invitation.routes.js";
+import { errorHandler } from "./middleware/error.middleware.js";
 
 const app = express();
 
@@ -53,5 +55,9 @@ app.use(decisionRoutes);
 app.use(documentRoutes);
 app.use(projectProgressRoutes);
 app.use(activityRoutes);
+app.use(invitationRoutes);
+
+// Centralized error handler
+app.use(errorHandler);
 
 export default app;

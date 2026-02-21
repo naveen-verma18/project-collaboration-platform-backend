@@ -49,7 +49,8 @@ export function ActivityTab() {
     if (!projectId) return;
     try {
       setIsLoading(true);
-      const data = await activityApi.getAll(projectId);
+      const response = await activityApi.getAll(projectId);
+      const data = response.data;
 
       // Backend returns: [{ id, action, metadata, createdAt, user }]
       // We need to parse 'action' to determine type and target.

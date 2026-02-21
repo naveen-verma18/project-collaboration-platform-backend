@@ -11,6 +11,7 @@ import { DecisionsPage } from "./components/pages/DecisionsPage";
 import { ActivityPage } from "./components/pages/ActivityPage";
 import { TeamPage } from "./components/pages/TeamPage";
 import { SettingsPage } from "./components/pages/SettingsPage";
+import { InvitationsPage } from "./components/pages/InvitationsPage";
 
 export default function App() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -129,6 +130,16 @@ export default function App() {
           element={
             isAuthenticated ? (
               <TeamPage theme={theme} toggleTheme={toggleTheme} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/invitations"
+          element={
+            isAuthenticated ? (
+              <InvitationsPage theme={theme} toggleTheme={toggleTheme} />
             ) : (
               <Navigate to="/login" />
             )

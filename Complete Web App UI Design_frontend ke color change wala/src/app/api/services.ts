@@ -22,16 +22,25 @@ export const decisions = {
 export const documents = {
     getAll: (projectId: string) => client<Document[]>(`/projects/${projectId}/documents`),
     create: (projectId: string, data: any) => client<Document>(`/projects/${projectId}/documents`, { body: data }),
-    update: (documentId: string, data: any) => client<Document>(`/documents/${documentId}`, { method: "PUT", body: data }),
+    update: (documentId: string, data: any) =>
+        client<Document>(`/documents/${documentId}`, { method: "PUT", body: data }),
+    delete: (documentId: string) => client<void>(`/documents/${documentId}`, { method: "DELETE" }),
 };
 
 export const members = {
     getAll: (projectId: string) => client<ProjectMember[]>(`/projects/${projectId}/members`),
-    invite: (projectId: string, email: string) => client<ProjectMember>(`/projects/${projectId}/members`, { body: { email } }),
+    invite: (projectId: string, email: string) =>
+        client<any>(`/projects/${projectId}/invitations`, { body: { email } }),
     remove: (projectId: string, memberId: string) => client<any>(`/projects/${projectId}/members/${memberId}`, { method: "DELETE" }),
     changeRole: (projectId: string, memberId: string, role: string) => client<ProjectMember>(`/projects/${projectId}/members/${memberId}/role`, { method: "PATCH", body: { role } }),
 };
 
 export const activity = {
     getAll: (projectId: string) => client<Activity[]>(`/projects/${projectId}/activity`),
+};
+
+export const invitations = {
+    getMy: () => client<any[]>(`/invitations`),
+    accept: (id: string) => client<any>(`/invitations/${id}/accept`, { method: "PATCH" }),
+    reject: (id: string) => client<any>(`/invitations/${id}/reject`, { method: "PATCH" }),
 };

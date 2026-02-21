@@ -35,7 +35,8 @@ export function MembersTab() {
     if (!projectId) return;
     try {
       setIsLoading(true);
-      const data = await memberApi.getAll(projectId);
+      const response = await memberApi.getAll(projectId);
+      const data = response.data;
       const formattedMembers = data.map((m: any) => ({
         id: m.id, // User ID or Member ID? Backend returns member list, we should check structure.
         // Wait, my backend implementation returns [ownerMember, ...formattedMembers]

@@ -62,29 +62,31 @@ export const getProjectDocuments = async ({ projectId, userId }) => {
 };
 
 /**
- * Update document using Optimistic Concurrency Control (OCC)
+ * Update a document
  * OWNER / ADMIN only
  */
 export const updateDocument = async ({
   documentId,
-  projectId,
   title,
   content,
   userId,
-  version,
 }) => {
-  const role = await getUserProjectRole(projectId, userId);
+  const existing = await prisma.document.findUnique({
+    where: { id: documentId },
+  });
+
+  if (!existing) {
+    throw new Error("DOCUMENT_NOT_FOUND");
+  }
+
+  const role = await getUserProjectRole(existing.projectId, userId);
 
   if (!role || role === "MEMBER") {
     throw new Error("NOT_AUTHORIZED");
   }
 
-  // 🔐 Atomic update (id + version must match)
-  const result = await prisma.document.updateMany({
-    where: {
-      id: documentId,
-      version: version,
-    },
+  const updatedDocument = await prisma.document.update({
+    where: { id: documentId },
     data: {
       title,
       content,
@@ -94,31 +96,7 @@ export const updateDocument = async ({
     },
   });
 
-  // ❌ Conflict or missing document
-  if (result.count === 0) {
-    const latest = await prisma.document.findUnique({
-      where: { id: documentId },
-    });
-
-    if (!latest) {
-      throw new Error("DOCUMENT_NOT_FOUND");
-    }
-
-    return {
-      conflict: true,
-      latestContent: latest.content,
-      latestTitle: latest.title,
-      latestVersion: latest.version,
-    };
-  }
-
-  // ✅ Fetch updated document
-  const updatedDocument = await prisma.document.findUnique({
-    where: { id: documentId },
-  });
-
-  // Emit standardized real-time update
-  emitToProject(projectId, "document:updated", {
+  emitToProject(existing.projectId, "document:updated", {
     success: true,
     data: {
       documentId: updatedDocument.id,
@@ -128,9 +106,8 @@ export const updateDocument = async ({
     error: null,
   });
 
-  // Log activity
   await createActivity({
-    projectId,
+    projectId: existing.projectId,
     userId,
     action: "DOCUMENT_UPDATED",
     metadata: {
@@ -139,8 +116,39 @@ export const updateDocument = async ({
     },
   });
 
-  return {
-    conflict: false,
-    document: updatedDocument,
-  };
+  return updatedDocument;
+};
+
+/**
+ * Delete a document
+ * OWNER / ADMIN only
+ */
+export const deleteDocument = async ({ documentId, userId }) => {
+  const existing = await prisma.document.findUnique({
+    where: { id: documentId },
+  });
+
+  if (!existing) {
+    throw new Error("DOCUMENT_NOT_FOUND");
+  }
+
+  const role = await getUserProjectRole(existing.projectId, userId);
+
+  if (!role || role === "MEMBER") {
+    throw new Error("NOT_AUTHORIZED");
+  }
+
+  await prisma.document.delete({
+    where: { id: documentId },
+  });
+
+  await createActivity({
+    projectId: existing.projectId,
+    userId,
+    action: "DOCUMENT_DELETED",
+    metadata: {
+      documentId: existing.id,
+      title: existing.title,
+    },
+  });
 };

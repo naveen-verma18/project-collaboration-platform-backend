@@ -32,7 +32,6 @@ export function GoalsTab() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (projectId) {
@@ -43,12 +42,12 @@ export function GoalsTab() {
   const fetchGoals = async () => {
     try {
       setLoading(true);
-      setError("");
       const response = await goalApi.getAll(projectId!);
-      const data = response.data ?? [];
+      const backendGoals = response.data;
+
       // Map backend data to frontend interface
       // Missing fields will be mocked for UI completeness until schema is updated
-      const mappedGoals = data.map((g: any) => ({
+      const mappedGoals = backendGoals.map((g: any) => ({
         ...g,
         progress: g.isCompleted ? 100 : 0, // Simple progress
         priority: "MEDIUM", // Mock
@@ -58,7 +57,6 @@ export function GoalsTab() {
       setGoals(mappedGoals);
     } catch (error) {
       console.error("Failed to fetch goals", error);
-      setError("Failed to load goals");
     } finally {
       setLoading(false);
     }
@@ -72,7 +70,6 @@ export function GoalsTab() {
       await goalApi.complete(id);
     } catch (error) {
       console.error("Failed to complete goal", error);
-      setError("Failed to complete goal");
       fetchGoals(); // Revert
     }
   };
@@ -84,7 +81,6 @@ export function GoalsTab() {
       fetchGoals();
     } catch (error) {
       console.error("Failed to create goal", error);
-      setError("Failed to create goal");
     }
   };
 
@@ -102,13 +98,6 @@ export function GoalsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Error */}
-      {error && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div

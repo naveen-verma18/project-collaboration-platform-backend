@@ -10,7 +10,7 @@ export const createDocument = async (req, res, next) => {
       userId: req.user.id,
       title,
       content,
-      type
+      type,
     });
 
     res.status(201).json({
@@ -28,7 +28,7 @@ export const getDocuments = async (req, res, next) => {
   try {
     const docs = await documentService.getProjectDocuments({
       projectId,
-      userId: req.user.id
+      userId: req.user.id,
     });
 
     res.json({
@@ -49,7 +49,7 @@ export const updateDocumentController = async (req, res, next) => {
       documentId,
       userId: req.user.id,
       title,
-      content
+      content,
     });
 
     res.json({
@@ -61,6 +61,20 @@ export const updateDocumentController = async (req, res, next) => {
   }
 };
 
+export const deleteDocumentController = async (req, res, next) => {
+  const { documentId } = req.params;
 
+  try {
+    await documentService.deleteDocument({
+      documentId,
+      userId: req.user.id,
+    });
 
-
+    res.status(204).json({
+      success: true,
+      data: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

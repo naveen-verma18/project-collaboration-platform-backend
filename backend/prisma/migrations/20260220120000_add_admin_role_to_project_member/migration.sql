@@ -1,0 +1,3 @@
+-- AlterEnum
+ALTER TYPE "ProjectRole" ADD VALUE IF NOT EXISTS 'ADMIN';
+

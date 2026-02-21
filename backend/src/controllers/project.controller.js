@@ -96,14 +96,32 @@ export async function updateProjectController(req, res) {
   } catch (error) {
     switch (error.message) {
       case "PROJECT_NOT_FOUND":
-        return res.status(404).json({ error: "Project not found" });
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: "PROJECT_NOT_FOUND",
+            message: "Project not found",
+          },
+        });
 
       case "NO_FIELDS_TO_UPDATE":
-        return res.status(400).json({ error: "No valid fields to update" });
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: "NO_FIELDS_TO_UPDATE",
+            message: "No valid fields to update",
+          },
+        });
 
       default:
         console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({
+          success: false,
+          error: {
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Internal server error",
+          },
+        });
     }
   }
 }
@@ -118,15 +136,31 @@ export async function deleteProjectController(req, res) {
 
     await deleteProject({ projectId, ownerId });
 
-    return res.status(204).send();
+    return res.status(200).json({
+      success: true,
+      data: null,
+      message: "Project deleted successfully",
+    });
   } catch (error) {
     switch (error.message) {
       case "PROJECT_NOT_FOUND":
-        return res.status(404).json({ error: "Project not found" });
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: "PROJECT_NOT_FOUND",
+            message: "Project not found",
+          },
+        });
 
       default:
         console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({
+          success: false,
+          error: {
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Internal server error",
+          },
+        });
     }
   }
 }
@@ -139,11 +173,21 @@ export const updateProjectStatusController = async (req, res) => {
   const { status } = req.body;
   const userId = req.user.id;
 
-  const project = await updateProjectStatus(
-    projectId,
-    status,
-    userId
-  );
+  try {
+    const project = await updateProjectStatus(projectId, status, userId);
 
-  res.json(project);
+    res.json({
+      success: true,
+      data: project,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Internal server error",
+      },
+    });
+  }
 };

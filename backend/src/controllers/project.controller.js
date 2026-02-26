@@ -136,11 +136,7 @@ export async function deleteProjectController(req, res) {
 
     await deleteProject({ projectId, ownerId });
 
-    return res.status(200).json({
-      success: true,
-      data: null,
-      message: "Project deleted successfully",
-    });
+    return res.status(204).send();
   } catch (error) {
     switch (error.message) {
       case "PROJECT_NOT_FOUND":

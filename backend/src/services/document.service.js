@@ -23,10 +23,21 @@ export const createDocument = async ({
   const document = await prisma.document.create({
     data: {
       title,
-      content,
+      // Tiptap collaborative editor expects an empty yjs compatible structure or empty string
+      // default we can leave as empty string or a base HTML paragraph
+      content: content || "<p></p>",
       type,
       projectId,
       version: 1, // initial version
+    },
+  });
+
+  // Assign EDITOR permission to the creator
+  await prisma.documentPermission.create({
+    data: {
+      documentId: document.id,
+      userId,
+      role: "EDITOR",
     },
   });
 

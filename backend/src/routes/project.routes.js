@@ -14,20 +14,20 @@ router.post("/", authMiddleware, createProjectController);
 router.get("/:projectId", authMiddleware, getProjectByIdController);
 
 router.put(
-  "/projects/:projectId",
+  "/:projectId",
   authMiddleware,
   updateProjectController
 );
 
 router.delete(
-    "/projects/:projectId",
-    authMiddleware,
-    deleteProjectController
-  );
+  "/:projectId",
+  authMiddleware,
+  deleteProjectController
+);
 
-  router.patch("/:projectId/status", updateProjectStatusController);
+router.patch("/:projectId/status", updateProjectStatusController);
 
-  
+
 
 
 export default router;

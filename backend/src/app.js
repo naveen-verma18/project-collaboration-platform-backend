@@ -13,6 +13,9 @@ import documentRoutes from "./routes/document.routes.js";
 import projectProgressRoutes from "./routes/projectProgress.routes.js";
 import activityRoutes from "./routes/activity.routes.js";
 import invitationRoutes from "./routes/invitation.routes.js";
+import fileRoutes from "./routes/file.routes.js";
+import versionRoutes from "./routes/version.routes.js";
+import permissionRoutes from "./routes/permission.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 
 const app = express();
@@ -56,6 +59,9 @@ app.use(documentRoutes);
 app.use(projectProgressRoutes);
 app.use(activityRoutes);
 app.use(invitationRoutes);
+app.use(fileRoutes);
+app.use(versionRoutes);
+app.use(permissionRoutes);
 
 // Centralized error handler
 app.use(errorHandler);

@@ -9,6 +9,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "../../context/AuthContext";
 
 interface NavbarProps {
   theme: "light" | "dark";
@@ -16,8 +18,19 @@ interface NavbarProps {
 }
 
 export function Navbar({ theme, toggleTheme }: NavbarProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications] = useState(3);
+
+  const handleSignOut = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
+
+  // Display friendly name: email prefix or user id fallback
+  const displayName = user?.email ? user.email.split("@")[0] : "User";
+  const displayEmail = user?.email ?? "";
 
   return (
     <motion.header
@@ -79,9 +92,9 @@ export function Navbar({ theme, toggleTheme }: NavbarProps) {
             </div>
             <div className="text-left hidden sm:block">
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                John Doe
+                {displayName}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Admin</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Member</p>
             </div>
           </motion.button>
 
@@ -94,10 +107,10 @@ export function Navbar({ theme, toggleTheme }: NavbarProps) {
             >
               <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                 <p className="font-medium text-gray-900 dark:text-white">
-                  John Doe
+                  {displayName}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  john@example.com
+                  {displayEmail}
                 </p>
               </div>
               <div className="py-2">
@@ -115,7 +128,10 @@ export function Navbar({ theme, toggleTheme }: NavbarProps) {
                 </button>
               </div>
               <div className="border-t border-gray-100 dark:border-gray-700 py-2">
-                <button className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
+                <button
+                  onClick={handleSignOut}
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3"
+                >
                   <LogOut className="w-4 h-4" />
                   Sign Out
                 </button>

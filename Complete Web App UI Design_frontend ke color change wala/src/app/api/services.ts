@@ -40,7 +40,7 @@ export const activity = {
 };
 
 export const invitations = {
-    getMy: () => client<any[]>(`/invitations`),
-    accept: (id: string) => client<any>(`/invitations/${id}/accept`, { method: "PATCH" }),
-    reject: (id: string) => client<any>(`/invitations/${id}/reject`, { method: "PATCH" }),
+    getMy: () => client<any[]>(`/invites/pending`),
+    accept: (id: string) => client<any>(`/invites/${id}/accept`, { method: "POST" }),
+    reject: (id: string) => client<any>(`/invites/${id}/reject`, { method: "POST" }),
 };

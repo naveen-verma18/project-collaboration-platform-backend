@@ -17,6 +17,9 @@ export function errorHandler(err, req, res, next) {
     DOCUMENT_NOT_FOUND: { status: 404, code: "DOCUMENT_NOT_FOUND" },
     ACCESS_DENIED: { status: 403, code: "ACCESS_DENIED" },
     NOT_AUTHORIZED: { status: 403, code: "NOT_AUTHORIZED" },
+    "User already exists": { status: 400, code: "USER_ALREADY_EXISTS" },
+    "Email and password are required": { status: 400, code: "AUTH_REQUIRED" },
+    "Invalid email or password": { status: 401, code: "INVALID_CREDENTIALS" },
   };
 
   const mapped = errorMap[message] || {

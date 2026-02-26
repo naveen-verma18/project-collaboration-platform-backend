@@ -10,7 +10,11 @@ import {
   Users,
   Settings,
   Sparkles,
+  Inbox,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { LogoutButton } from "../LogoutButton";
+import { invitations as invitationsApi } from "../../api/services";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -20,11 +24,37 @@ const navigation = [
   { name: "Decisions", href: "/decisions", icon: GitBranch },
   { name: "Activity", href: "/activity", icon: Activity },
   { name: "Team", href: "/team", icon: Users },
+  { name: "Invites", href: "/invitations", icon: Inbox },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const location = useLocation();
+  const [pendingInvites, setPendingInvites] = useState<number | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadInvites = async () => {
+      try {
+        const res = await invitationsApi.getMy();
+        if (!isMounted) return;
+        const list = (res.data as any[]) || [];
+        setPendingInvites(list.length);
+      } catch {
+        // Fail silently; sidebar shouldn't break if invites API fails
+        if (isMounted) {
+          setPendingInvites(null);
+        }
+      }
+    };
+
+    loadInvites();
+    const interval = setInterval(loadInvites, 60_000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <motion.aside
@@ -54,22 +84,31 @@ export function Sidebar() {
         <div className="space-y-1">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
+            const showInviteBadge = item.href === "/invitations" && !!pendingInvites;
+
             return (
               <Link key={item.name} to={item.href}>
                 <motion.div
                   whileHover={{ x: 4 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group ${isActive
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group ${isActive
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                 >
-                  <item.icon
-                    className={`w-5 h-5 ${isActive
+                  <div className="flex items-center gap-3">
+                    <item.icon
+                      className={`w-5 h-5 ${isActive
                         ? "text-white"
                         : "text-gray-500 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-purple-400"
-                      }`}
-                  />
-                  <span>{item.name}</span>
+                        }`}
+                    />
+                    <span>{item.name}</span>
+                  </div>
+                  {showInviteBadge && (
+                    <span className="ml-2 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-xs min-w-[20px] h-5 px-1">
+                      {pendingInvites}
+                    </span>
+                  )}
                 </motion.div>
               </Link>
             );
@@ -92,6 +131,11 @@ export function Sidebar() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* User Actions */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <LogoutButton />
       </div>
     </motion.aside>
   );

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { FileText, Plus, ExternalLink, Clock, FolderKanban } from "lucide-react";
+import { Link } from "react-router";
 import { Sidebar } from "../shared/Sidebar";
 import { Navbar } from "../shared/Navbar";
 import { documents as documentApi } from "../../api/services";
@@ -100,8 +101,9 @@ export function DocumentsPage({ theme, toggleTheme }: DocumentsPageProps) {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {documents.map((doc) => (
-                                    <div
+                                    <Link
                                         key={doc.id}
+                                        to={`/project/${selectedProjectId}/documents/${doc.id}/edit`}
                                         className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 flex flex-col"
                                     >
                                         <div className="flex items-start justify-between mb-4">
@@ -127,7 +129,7 @@ export function DocumentsPage({ theme, toggleTheme }: DocumentsPageProps) {
                                                 {doc.type || "DOC"}
                                             </span>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         )}

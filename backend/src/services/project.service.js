@@ -190,8 +190,21 @@ export const deleteProject = async ({ projectId, ownerId }) => {
 
   await prisma.$transaction(async (tx) => {
     // Explicitly remove related records to ensure cascade semantics
+    // Also including newly added Yjs CRDT and File models
     await tx.projectActivity.deleteMany({ where: { projectId } });
     await tx.projectGoal.deleteMany({ where: { projectId } });
+
+    // First delete child models of documents
+    const documents = await tx.document.findMany({ where: { projectId }, select: { id: true } });
+    const documentIds = documents.map(d => d.id);
+
+    if (documentIds.length > 0) {
+      await tx.documentPermission.deleteMany({ where: { documentId: { in: documentIds } } });
+      await tx.documentSnapshot.deleteMany({ where: { documentId: { in: documentIds } } });
+      await tx.documentUpdate.deleteMany({ where: { documentId: { in: documentIds } } });
+    }
+
+    await tx.file.deleteMany({ where: { projectId } });
     await tx.document.deleteMany({ where: { projectId } });
     await tx.projectMember.deleteMany({ where: { projectId } });
     await tx.projectInvitation.deleteMany({ where: { projectId } });

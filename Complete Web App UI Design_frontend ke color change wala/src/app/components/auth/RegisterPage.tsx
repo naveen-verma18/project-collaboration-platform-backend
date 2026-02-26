@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
 import { auth as authApi } from "../../api/auth";
+import { useAuth } from "../../context/AuthContext";
 
-interface RegisterPageProps {
-  onRegister: () => void;
-}
-
-export function RegisterPage({ onRegister }: RegisterPageProps) {
+export function RegisterPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,11 +30,11 @@ export function RegisterPage({ onRegister }: RegisterPageProps) {
       // 2. Auto-login to get token (since register doesn't return it)
       const loginData = await authApi.login({ email, password });
 
-      // 3. Store token
-      localStorage.setItem("token", loginData.token);
+      // 3. Store token + update auth context
+      login(loginData.token);
 
-      // 4. Update app state
-      onRegister();
+      // 4. Navigate to dashboard
+      navigate("/dashboard", { replace: true });
     } catch (err: any) {
       console.error("Registration failed", err);
       // Handle generic error for now

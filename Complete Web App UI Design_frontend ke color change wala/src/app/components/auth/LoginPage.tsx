@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
 import { auth as authApi } from "../../api/auth";
+import { useAuth } from "../../context/AuthContext";
 
-interface LoginPageProps {
-  onLogin: () => void;
-}
-
-export function LoginPage({ onLogin }: LoginPageProps) {
+export function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,8 +20,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
     try {
       const data = await authApi.login({ email, password });
-      localStorage.setItem("token", data.token); // Store token
-      onLogin();
+      login(data.token);
+      navigate("/dashboard", { replace: true });
     } catch (err: any) {
       console.error("Login failed", err);
       setError(err.message || "Invalid email or password");

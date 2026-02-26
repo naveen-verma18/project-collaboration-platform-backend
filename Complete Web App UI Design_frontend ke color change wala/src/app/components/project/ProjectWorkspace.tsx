@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import {
   ChevronDown,
@@ -21,7 +21,8 @@ import { MembersTab } from "./MembersTab";
 import { AIAssistant } from "../ai/AIAssistant";
 import { OnlinePresence } from "./OnlinePresence";
 import { projects as projectApi } from "../../api/projects";
-import type { Project } from "../dashboard/Dashboard"; // Import shared type
+import type { Project } from "../dashboard/Dashboard";
+import { useAuth } from "../../context/AuthContext";
 
 interface ProjectWorkspaceProps {
   theme: "light" | "dark";
@@ -40,6 +41,8 @@ const tabs = [
 
 export function ProjectWorkspace({ theme, toggleTheme }: ProjectWorkspaceProps) {
   const { projectId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("goals");
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +69,21 @@ export function ProjectWorkspace({ theme, toggleTheme }: ProjectWorkspaceProps) 
       console.error("Failed to load project", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!projectId || !project) return;
+    if (!confirm(`Are you sure you want to delete project "${project.name}"? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await projectApi.delete(projectId);
+      navigate("/projects");
+    } catch (error: any) {
+      console.error("Failed to delete project", error);
+      alert(error?.message || "Failed to delete project");
     }
   };
 
@@ -99,6 +117,8 @@ export function ProjectWorkspace({ theme, toggleTheme }: ProjectWorkspaceProps) 
       </div>
     );
   }
+
+  const isOwner = user && project && (project as any).ownerId === user.id;
 
   return (
     <div className="flex min-h-screen bg-[#F6F7FB] dark:bg-[#0F172A]">
@@ -145,6 +165,17 @@ export function ProjectWorkspace({ theme, toggleTheme }: ProjectWorkspaceProps) 
                   <UserPlus className="w-4 h-4" />
                   Invite
                 </motion.button>
+
+                {isOwner && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleDeleteProject}
+                    className="px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-all duration-200"
+                  >
+                    Delete Project
+                  </motion.button>
+                )}
 
                 <div className="relative">
                   <select

@@ -4,6 +4,7 @@ import { Inbox, Check, X, Clock } from "lucide-react";
 import { Sidebar } from "../shared/Sidebar";
 import { Navbar } from "../shared/Navbar";
 import { invitations as invitationsApi } from "../../api/services";
+import { toast } from "sonner";
 
 interface InvitationsPageProps {
   theme: "light" | "dark";
@@ -61,13 +62,16 @@ export function InvitationsPage({ theme, toggleTheme }: InvitationsPageProps) {
       setActioningId(id);
       if (action === "accept") {
         await invitationsApi.accept(id);
+        toast.success("Invitation accepted. The project is now available in your dashboard.");
       } else {
         await invitationsApi.reject(id);
+        toast.success("Invitation rejected.");
       }
       await loadInvitations();
     } catch (err: any) {
       console.error("Failed to update invitation", err);
       setError(err.message || "Failed to update invitation");
+      toast.error(err.message || "Failed to update invitation");
     } finally {
       setActioningId(null);
     }

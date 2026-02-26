@@ -1,0 +1,17 @@
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+Error: Prisma schema validation - (validate wasm)
+Error code: P1012
+[1;91merror[0m: [1mError validating field `project` in model `ProjectInvitation`: The relation field `project` on model `ProjectInvitation` is missing an opposite relation field on the model `Project`. Either run `prisma format` or add it manually.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:279[0m
+[1;94m   | [0m
+[1;94m278 | [0m
+[1;94m279 | [0m  [1;91mproject      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)[0m
+[1;94m280 | [0m  invitedUser  User              @relation("InvitedUser", fields: [invitedUserId], references: [id])
+[1;94m   | [0m
+
+Validation Error Count: 1
+[Context: validate]
+
+Prisma CLI Version : 6.19.2

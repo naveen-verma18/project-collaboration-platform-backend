@@ -16,17 +16,20 @@ router.post(
   createInvitationController
 );
 
-// Get invitations for logged in user
-router.get("/invitations", authMiddleware, getMyInvitationsController);
+// Get pending invitations for logged in user (new canonical route)
+router.get("/invites/pending", authMiddleware, getMyInvitationsController);
+
+// Backwards-compatible route used by existing frontend
+router.get("/users/invites", authMiddleware, getMyInvitationsController);
 
 // Accept / Reject
-router.patch(
-  "/invitations/:id/accept",
+router.post(
+  "/invites/:id/accept",
   authMiddleware,
   acceptInvitationController
 );
-router.patch(
-  "/invitations/:id/reject",
+router.post(
+  "/invites/:id/reject",
   authMiddleware,
   rejectInvitationController
 );

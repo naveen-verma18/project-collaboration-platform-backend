@@ -36,6 +36,12 @@ async function client<T>(
     const response = await fetch(`${BASE_URL}${endpoint}`, config);
 
     if (!response.ok) {
+        // Token rejected by the server — clear it and force re-login
+        if (response.status === 401) {
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+            throw new Error("Session expired. Please log in again.");
+        }
         const error = await response.json().catch(() => ({
             message: "An unknown error occurred",
         }));

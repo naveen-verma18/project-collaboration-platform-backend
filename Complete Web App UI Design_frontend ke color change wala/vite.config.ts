@@ -14,6 +14,7 @@ export default defineConfig({
     alias: {
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
+      'yjs': path.resolve(__dirname, 'node_modules/yjs'),
     },
   },
 

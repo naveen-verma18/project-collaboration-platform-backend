@@ -50,6 +50,18 @@ export function TeamPage({ theme, toggleTheme }: TeamPageProps) {
         fetchMembers();
     }, [selectedProjectId]);
 
+    const handleRoleChange = async (memberId: string, newRole: string) => {
+        try {
+            await projectMemberApi.changeRole(selectedProjectId, memberId, newRole);
+            setMembers((prev) =>
+                prev.map((m) => (m.id === memberId ? { ...m, role: newRole as any } : m))
+            );
+        } catch (error) {
+            console.error("Failed to change role", error);
+            alert("Failed to change role. Only OWNERs can promote/demote.");
+        }
+    };
+
     return (
         <div className="flex min-h-screen bg-[#F6F7FB] dark:bg-[#0F172A]">
             <Sidebar />
@@ -119,20 +131,31 @@ export function TeamPage({ theme, toggleTheme }: TeamPageProps) {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1">
-                                                <MoreVertical className="w-5 h-5" />
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <select
+                                                    value={member.role}
+                                                    onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                                                    className="text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-1 outline-none focus:ring-1 focus:ring-indigo-500"
+                                                >
+                                                    <option value="MEMBER">Member</option>
+                                                    <option value="ADMIN">Admin</option>
+                                                    <option value="OWNER">Owner</option>
+                                                </select>
+                                                <button className="text-gray-400 hover:text-red-500 p-1 transition-colors" title="Remove Member">
+                                                    <MoreVertical className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3 mt-6">
+                                        <div className="flex items-center gap-3 mt-4">
                                             <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-full text-xs font-bold flex items-center gap-1.5 capitalize">
                                                 <Shield className="w-3.5 h-3.5" />
                                                 {member.role?.toLowerCase()}
                                             </span>
-                                            {member.role === "OWNER" && (
+                                            {(member.role === "OWNER" || member.role === "ADMIN") && (
                                                 <span className="text-amber-500 flex items-center gap-1 text-xs font-bold">
                                                     <Star className="w-3.5 h-3.5 fill-amber-500" />
-                                                    Admin
+                                                    {member.role === "OWNER" ? "Owner" : "Admin"}
                                                 </span>
                                             )}
                                         </div>
